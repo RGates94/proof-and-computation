@@ -1,13 +1,17 @@
+use serde_derive::{Deserialize, Serialize};
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 enum RegisterInstruction {
     INC(usize, usize),
     DEC(usize, usize, usize),
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 struct RegisterMachine {
     instructions: Vec<RegisterInstruction>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 struct ProgramState {
     current_instruction: usize,
     registers: Vec<usize>,
