@@ -41,11 +41,12 @@ impl ProgramState {
 			}
         };
     }
-    fn compute(&mut self, machine: &RegisterMachine) {
+    fn compute(&mut self, machine: &RegisterMachine) -> usize {
         while let Some(instruction) = machine.instructions.get(self.current_instruction) {
             self.do_instruction(instruction);
         };
         self.halted = true;
+        *self.registers.get(0).unwrap_or(&0)
     }
 }
 
@@ -60,6 +61,6 @@ fn main() {
         halted: false,
     };
     println!("{:?}", basic_program_state);
-    basic_program_state.compute(&register_machine);
+    println!("{}", basic_program_state.compute(&register_machine));
     println!("{:?}", basic_program_state);
 }
