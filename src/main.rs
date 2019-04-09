@@ -7,11 +7,6 @@ struct RegisterMachine {
     instructions: Vec<RegisterInstruction>,
 }
 
-struct RegisterComputer {
-    program: RegisterMachine,
-    current_state: ProgramState,
-}
-
 #[derive(Debug)]
 struct ProgramState {
     current_instruction: usize,
