@@ -8,17 +8,30 @@ pub enum RegisterInstruction {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct RegisterMachine {
-    pub instructions: Vec<RegisterInstruction>,
+    instructions: Vec<RegisterInstruction>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ProgramState {
-    pub current_instruction: usize,
-    pub registers: Vec<usize>,
-    pub halted: bool,
+    current_instruction: usize,
+    registers: Vec<usize>,
+    halted: bool,
+}
+
+impl RegisterMachine {
+    pub fn from_vec(instructions: Vec<RegisterInstruction>) -> Self {
+        RegisterMachine { instructions }
+    }
 }
 
 impl ProgramState {
+    pub fn from_vec(registers: Vec<usize>) -> Self {
+        ProgramState {
+            current_instruction: 0,
+            registers,
+            halted: false,
+        }
+    }
     fn do_instruction(&mut self, instruction: &RegisterInstruction) {
         match instruction {
             RegisterInstruction::INC(register, next) => {
