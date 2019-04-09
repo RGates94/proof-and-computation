@@ -62,3 +62,18 @@ impl ProgramState {
         *self.registers.get(0).unwrap_or(&0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_calculation() {
+        let register_machine = RegisterMachine::from_vec(vec![
+            RegisterInstruction::INC(2, 1),
+            RegisterInstruction::DEC(2, 2, 3),
+            RegisterInstruction::INC(0, 1),
+        ]);
+        let mut input_state = ProgramState::from_vec(vec![5, 3]);
+        assert_eq!(input_state.compute(&register_machine), 6);
+    }
+}
