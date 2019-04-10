@@ -8,7 +8,7 @@ pub enum WhileInstruction {
 }
 
 pub struct WhileProgram {
-    instructions: Vec<WhileInstruction>,
+    pub instructions: Vec<WhileInstruction>,
 }
 
 pub struct WhileState {
@@ -48,6 +48,14 @@ impl WhileState {
                 }
             }
             _ => {}
+        }
+    }
+}
+
+impl WhileProgram {
+    pub fn run(&self, state: &mut WhileState) {
+        for instruction in self.instructions.iter() {
+            state.do_instruction(instruction)
         }
     }
 }
@@ -98,6 +106,25 @@ mod tests {
         };
         state.do_instruction(&instruction);
         state.do_instruction(&second_instruction);
+        assert_eq!(state.variable_states.get("x"), Some(&0));
+        assert_eq!(state.variable_states.get("refrigerator"), Some(&1));
+    }
+
+    #[test]
+    fn run_assignment_program() {
+        let program = WhileProgram {
+            instructions: vec![
+                WhileInstruction::Assign(String::from("x"), AssignType::Zero),
+                WhileInstruction::Assign(
+                    String::from("refrigerator"),
+                    AssignType::VariableIncremented(String::from("x")),
+                ),
+            ],
+        };
+        let mut state = WhileState {
+            variable_states: HashMap::new(),
+        };
+        program.run(&mut state);
         assert_eq!(state.variable_states.get("x"), Some(&0));
         assert_eq!(state.variable_states.get("refrigerator"), Some(&1));
     }
