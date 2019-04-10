@@ -47,6 +47,13 @@ impl WhileState {
                     }
                 }
             }
+            WhileInstruction::If(first_var, second_var, if_block, else_block) => {
+                if self.variable_states.get(first_var) < self.variable_states.get(second_var) {
+                    if_block.run(self)
+                } else {
+                    else_block.run(self)
+                }
+            }
             _ => {}
         }
     }
@@ -127,5 +134,41 @@ mod tests {
         program.run(&mut state);
         assert_eq!(state.variable_states.get("x"), Some(&0));
         assert_eq!(state.variable_states.get("refrigerator"), Some(&1));
+    }
+
+    #[test]
+    fn run_if_program() {
+        let program = WhileProgram {
+            instructions: vec![
+                WhileInstruction::Assign(String::from("x"), AssignType::Zero),
+                WhileInstruction::Assign(
+                    String::from("refrigerator"),
+                    AssignType::VariableIncremented(String::from("x")),
+                ),
+                WhileInstruction::If(
+                    String::from("x"),
+                    String::from("refrigerator"),
+                    Box::new(WhileProgram {
+                        instructions: vec![WhileInstruction::Assign(
+                            String::from("x"),
+                            AssignType::VariableIncremented(String::from("x")),
+                        )],
+                    }),
+                    Box::new(WhileProgram {
+                        instructions: vec![WhileInstruction::Assign(
+                            String::from("y"),
+                            AssignType::VariableIncremented(String::from("x")),
+                        )],
+                    }),
+                ),
+            ],
+        };
+        let mut state = WhileState {
+            variable_states: HashMap::new(),
+        };
+        program.run(&mut state);
+        assert_eq!(state.variable_states.get("x"), Some(&1));
+        assert_eq!(state.variable_states.get("refrigerator"), Some(&1));
+        assert_eq!(state.variable_states.get("y"), None);
     }
 }
