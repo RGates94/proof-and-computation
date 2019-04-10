@@ -27,15 +27,18 @@ impl WhileState {
             variable_states: HashMap::new(),
         }
     }
+    pub fn insert(&mut self, key: String, value: usize) {
+        self.variable_states.insert(key, value);
+    }
     pub fn do_instruction(&mut self, instruction: &WhileInstruction) {
         match instruction {
             WhileInstruction::Assign(var, assign) => {
                 match assign {
                     AssignType::Zero => {
-                        self.variable_states.insert(var.to_string(), 0);
+                        self.insert(var.to_string(), 0);
                     }
                     AssignType::Variable(other) => {
-                        self.variable_states.insert(
+                        self.insert(
                             var.to_string(),
                             *self.variable_states.get(other).expect(
                                 "Did not find right hand variable, write error handling later",
@@ -43,7 +46,7 @@ impl WhileState {
                         );
                     }
                     AssignType::VariableIncremented(other) => {
-                        self.variable_states.insert(
+                        self.insert(
                             var.to_string(),
                             *self.variable_states.get(other).expect(
                                 "Did not find right hand variable, write error handling later",
@@ -177,24 +180,41 @@ mod tests {
 
     #[test]
     fn run_for_program() {
-        let program = WhileProgram::from_vec(vec![
-            WhileInstruction::Assign(String::from("x"), AssignType::Zero),
-            WhileInstruction::Assign(
+        let program = WhileProgram::from_vec(vec![WhileInstruction::For(
+            String::from("x"),
+            Box::new(WhileProgram::from_vec(vec![WhileInstruction::For(
                 String::from("x"),
-                AssignType::VariableIncremented(String::from("x")),
-            ),
-            WhileInstruction::Assign(
-                String::from("x"),
-                AssignType::VariableIncremented(String::from("x")),
-            ),
-            WhileInstruction::Assign(
-                String::from("x"),
-                AssignType::VariableIncremented(String::from("x")),
-            ),
-            WhileInstruction::Assign(String::from("y"), AssignType::Zero),
-            WhileInstruction::For(
-                String::from("x"),
-                Box::new(WhileProgram::from_vec(vec![WhileInstruction::For(
+                Box::new(WhileProgram::from_vec(vec![
+                    WhileInstruction::Assign(
+                        String::from("x"),
+                        AssignType::VariableIncremented(String::from("x")),
+                    ),
+                    WhileInstruction::Assign(
+                        String::from("y"),
+                        AssignType::VariableIncremented(String::from("y")),
+                    ),
+                ])),
+            )])),
+        )]);
+        let mut state = WhileState::new();
+        state.insert(String::from("x"), 3);
+        state.insert(String::from("y"), 0);
+        program.run(&mut state);
+        assert_eq!(state.variable_states.get("x"), Some(&24));
+        assert_eq!(state.variable_states.get("y"), Some(&21));
+    }
+
+    #[test]
+    fn run_while_program() {
+        let program = WhileProgram::from_vec(vec![WhileInstruction::While(
+            String::from("y"),
+            String::from("x"),
+            Box::new(WhileProgram::from_vec(vec![
+                WhileInstruction::Assign(
+                    String::from("y"),
+                    AssignType::VariableIncremented(String::from("y")),
+                ),
+                WhileInstruction::For(
                     String::from("x"),
                     Box::new(WhileProgram::from_vec(vec![
                         WhileInstruction::Assign(
@@ -206,61 +226,12 @@ mod tests {
                             AssignType::VariableIncremented(String::from("y")),
                         ),
                     ])),
-                )])),
-            ),
-        ]);
+                ),
+            ])),
+        )]);
         let mut state = WhileState::new();
-        program.run(&mut state);
-        assert_eq!(state.variable_states.get("x"), Some(&24));
-        assert_eq!(state.variable_states.get("y"), Some(&21));
-    }
-
-    #[test]
-    fn run_while_program() {
-        let program = WhileProgram::from_vec(vec![
-            WhileInstruction::Assign(String::from("x"), AssignType::Zero),
-            WhileInstruction::Assign(
-                String::from("x"),
-                AssignType::VariableIncremented(String::from("x")),
-            ),
-            WhileInstruction::Assign(
-                String::from("x"),
-                AssignType::VariableIncremented(String::from("x")),
-            ),
-            WhileInstruction::Assign(
-                String::from("x"),
-                AssignType::VariableIncremented(String::from("x")),
-            ),
-            WhileInstruction::Assign(
-                String::from("x"),
-                AssignType::VariableIncremented(String::from("x")),
-            ),
-            WhileInstruction::Assign(String::from("y"), AssignType::Zero),
-            WhileInstruction::While(
-                String::from("y"),
-                String::from("x"),
-                Box::new(WhileProgram::from_vec(vec![
-                    WhileInstruction::Assign(
-                        String::from("y"),
-                        AssignType::VariableIncremented(String::from("y")),
-                    ),
-                    WhileInstruction::For(
-                        String::from("x"),
-                        Box::new(WhileProgram::from_vec(vec![
-                            WhileInstruction::Assign(
-                                String::from("x"),
-                                AssignType::VariableIncremented(String::from("x")),
-                            ),
-                            WhileInstruction::Assign(
-                                String::from("y"),
-                                AssignType::VariableIncremented(String::from("y")),
-                            ),
-                        ])),
-                    ),
-                ])),
-            ),
-        ]);
-        let mut state = WhileState::new();
+        state.insert(String::from("x"), 4);
+        state.insert(String::from("y"), 0);
         program.run(&mut state);
         assert_eq!(state.variable_states.get("x"), Some(&64));
         assert_eq!(state.variable_states.get("y"), Some(&64));
