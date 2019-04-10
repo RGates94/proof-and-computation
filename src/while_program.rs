@@ -54,6 +54,15 @@ impl WhileState {
                     else_block.run(self)
                 }
             }
+            WhileInstruction::For(var, block) => {
+                for _i in 0..*self
+                    .variable_states
+                    .get(var)
+                    .expect("The indexing variable was not found, write error handling later")
+                {
+                    block.run(self)
+                }
+            }
             _ => {}
         }
     }
@@ -170,5 +179,53 @@ mod tests {
         assert_eq!(state.variable_states.get("x"), Some(&1));
         assert_eq!(state.variable_states.get("refrigerator"), Some(&1));
         assert_eq!(state.variable_states.get("y"), None);
+    }
+
+    #[test]
+    fn run_for_program() {
+        let program = WhileProgram {
+            instructions: vec![
+                WhileInstruction::Assign(String::from("x"), AssignType::Zero),
+                WhileInstruction::Assign(
+                    String::from("x"),
+                    AssignType::VariableIncremented(String::from("x")),
+                ),
+                WhileInstruction::Assign(
+                    String::from("x"),
+                    AssignType::VariableIncremented(String::from("x")),
+                ),
+                WhileInstruction::Assign(
+                    String::from("x"),
+                    AssignType::VariableIncremented(String::from("x")),
+                ),
+                WhileInstruction::Assign(
+                    String::from("y"),
+                    AssignType::Zero,
+                ),
+                WhileInstruction::For(
+                    String::from("x"),
+                    Box::new(WhileProgram {
+                        instructions: vec![WhileInstruction::For(
+                            String::from("x"),
+                            Box::new(WhileProgram {
+                                instructions: vec![WhileInstruction::Assign(
+                                    String::from("x"),
+                                    AssignType::VariableIncremented(String::from("x")),
+                                ),WhileInstruction::Assign(
+                                    String::from("y"),
+                                    AssignType::VariableIncremented(String::from("y")),
+                                )],
+                            }),
+                        )],
+                    }),
+                ),
+            ],
+        };
+        let mut state = WhileState {
+            variable_states: HashMap::new(),
+        };
+        program.run(&mut state);
+        assert_eq!(state.variable_states.get("x"), Some(&24));
+        assert_eq!(state.variable_states.get("y"), Some(&21));
     }
 }
