@@ -12,7 +12,7 @@ pub struct WhileProgram {
 }
 
 pub struct WhileState {
-    pub variable_states: HashMap<String, usize>,
+    variable_states: HashMap<String, usize>,
 }
 
 pub enum AssignType {
