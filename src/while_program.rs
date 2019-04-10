@@ -22,6 +22,11 @@ pub enum AssignType {
 }
 
 impl WhileState {
+    pub fn new() -> Self {
+        WhileState {
+            variable_states: HashMap::new(),
+        }
+    }
     pub fn do_instruction(&mut self, instruction: &WhileInstruction) {
         match instruction {
             WhileInstruction::Assign(var, assign) => {
@@ -92,9 +97,7 @@ mod tests {
         let instruction = WhileInstruction::Assign(String::from("x"), AssignType::Zero);
         let second_instruction =
             WhileInstruction::Assign(String::from("refrigerator"), AssignType::Zero);
-        let mut state = WhileState {
-            variable_states: HashMap::new(),
-        };
+        let mut state = WhileState::new();
         state.do_instruction(&instruction);
         state.do_instruction(&second_instruction);
         assert_eq!(state.variable_states.get("x"), Some(&0));
@@ -108,9 +111,7 @@ mod tests {
             String::from("refrigerator"),
             AssignType::Variable(String::from("x")),
         );
-        let mut state = WhileState {
-            variable_states: HashMap::new(),
-        };
+        let mut state = WhileState::new();
         state.do_instruction(&instruction);
         state.do_instruction(&second_instruction);
         assert_eq!(state.variable_states.get("x"), Some(&0));
@@ -124,9 +125,7 @@ mod tests {
             String::from("refrigerator"),
             AssignType::VariableIncremented(String::from("x")),
         );
-        let mut state = WhileState {
-            variable_states: HashMap::new(),
-        };
+        let mut state = WhileState::new();
         state.do_instruction(&instruction);
         state.do_instruction(&second_instruction);
         assert_eq!(state.variable_states.get("x"), Some(&0));
@@ -142,9 +141,7 @@ mod tests {
                 AssignType::VariableIncremented(String::from("x")),
             ),
         ]);
-        let mut state = WhileState {
-            variable_states: HashMap::new(),
-        };
+        let mut state = WhileState::new();
         program.run(&mut state);
         assert_eq!(state.variable_states.get("x"), Some(&0));
         assert_eq!(state.variable_states.get("refrigerator"), Some(&1));
@@ -171,9 +168,7 @@ mod tests {
                 )])),
             ),
         ]);
-        let mut state = WhileState {
-            variable_states: HashMap::new(),
-        };
+        let mut state = WhileState::new();
         program.run(&mut state);
         assert_eq!(state.variable_states.get("x"), Some(&1));
         assert_eq!(state.variable_states.get("refrigerator"), Some(&1));
@@ -214,9 +209,7 @@ mod tests {
                 )])),
             ),
         ]);
-        let mut state = WhileState {
-            variable_states: HashMap::new(),
-        };
+        let mut state = WhileState::new();
         program.run(&mut state);
         assert_eq!(state.variable_states.get("x"), Some(&24));
         assert_eq!(state.variable_states.get("y"), Some(&21));
@@ -267,9 +260,7 @@ mod tests {
                 ])),
             ),
         ]);
-        let mut state = WhileState {
-            variable_states: HashMap::new(),
-        };
+        let mut state = WhileState::new();
         program.run(&mut state);
         assert_eq!(state.variable_states.get("x"), Some(&64));
         assert_eq!(state.variable_states.get("y"), Some(&64));
