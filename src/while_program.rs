@@ -30,33 +30,35 @@ impl WhileState {
     pub fn insert(&mut self, key: String, value: usize) {
         self.variable_states.insert(key, value);
     }
+    pub fn get(&self, key: &str) -> Option<&usize> {
+        self.variable_states.get(key)
+    }
     pub fn do_instruction(&mut self, instruction: &WhileInstruction) {
         match instruction {
-            WhileInstruction::Assign(var, assign) => {
-                match assign {
-                    AssignType::Zero => {
-                        self.insert(var.to_string(), 0);
-                    }
-                    AssignType::Variable(other) => {
-                        self.insert(
-                            var.to_string(),
-                            *self.variable_states.get(other).expect(
-                                "Did not find right hand variable, write error handling later",
-                            ),
-                        );
-                    }
-                    AssignType::VariableIncremented(other) => {
-                        self.insert(
-                            var.to_string(),
-                            *self.variable_states.get(other).expect(
-                                "Did not find right hand variable, write error handling later",
-                            ) + 1,
-                        );
-                    }
+            WhileInstruction::Assign(var, assign) => match assign {
+                AssignType::Zero => {
+                    self.insert(var.to_string(), 0);
                 }
-            }
+                AssignType::Variable(other) => {
+                    self.insert(
+                        var.to_string(),
+                        *self
+                            .get(other)
+                            .expect("Did not find right hand variable, write error handling later"),
+                    );
+                }
+                AssignType::VariableIncremented(other) => {
+                    self.insert(
+                        var.to_string(),
+                        *self
+                            .get(other)
+                            .expect("Did not find right hand variable, write error handling later")
+                            + 1,
+                    );
+                }
+            },
             WhileInstruction::If(first_var, second_var, if_block, else_block) => {
-                if self.variable_states.get(first_var) < self.variable_states.get(second_var) {
+                if self.get(first_var) < self.get(second_var) {
                     if_block.run(self)
                 } else {
                     else_block.run(self)
@@ -64,7 +66,6 @@ impl WhileState {
             }
             WhileInstruction::For(var, block) => {
                 for _i in 0..*self
-                    .variable_states
                     .get(var)
                     .expect("The indexing variable was not found, write error handling later")
                 {
@@ -72,7 +73,7 @@ impl WhileState {
                 }
             }
             WhileInstruction::While(first_var, second_var, block) => {
-                while self.variable_states.get(first_var) < self.variable_states.get(second_var) {
+                while self.get(first_var) < self.get(second_var) {
                     block.run(self)
                 }
             }
@@ -103,8 +104,8 @@ mod tests {
         let mut state = WhileState::new();
         state.do_instruction(&instruction);
         state.do_instruction(&second_instruction);
-        assert_eq!(state.variable_states.get("x"), Some(&0));
-        assert_eq!(state.variable_states.get("refrigerator"), Some(&0));
+        assert_eq!(state.get("x"), Some(&0));
+        assert_eq!(state.get("refrigerator"), Some(&0));
     }
 
     #[test]
@@ -117,8 +118,8 @@ mod tests {
         let mut state = WhileState::new();
         state.do_instruction(&instruction);
         state.do_instruction(&second_instruction);
-        assert_eq!(state.variable_states.get("x"), Some(&0));
-        assert_eq!(state.variable_states.get("refrigerator"), Some(&0));
+        assert_eq!(state.get("x"), Some(&0));
+        assert_eq!(state.get("refrigerator"), Some(&0));
     }
 
     #[test]
@@ -131,8 +132,8 @@ mod tests {
         let mut state = WhileState::new();
         state.do_instruction(&instruction);
         state.do_instruction(&second_instruction);
-        assert_eq!(state.variable_states.get("x"), Some(&0));
-        assert_eq!(state.variable_states.get("refrigerator"), Some(&1));
+        assert_eq!(state.get("x"), Some(&0));
+        assert_eq!(state.get("refrigerator"), Some(&1));
     }
 
     #[test]
@@ -146,8 +147,8 @@ mod tests {
         ]);
         let mut state = WhileState::new();
         program.run(&mut state);
-        assert_eq!(state.variable_states.get("x"), Some(&0));
-        assert_eq!(state.variable_states.get("refrigerator"), Some(&1));
+        assert_eq!(state.get("x"), Some(&0));
+        assert_eq!(state.get("refrigerator"), Some(&1));
     }
 
     #[test]
@@ -173,9 +174,9 @@ mod tests {
         ]);
         let mut state = WhileState::new();
         program.run(&mut state);
-        assert_eq!(state.variable_states.get("x"), Some(&1));
-        assert_eq!(state.variable_states.get("refrigerator"), Some(&1));
-        assert_eq!(state.variable_states.get("y"), None);
+        assert_eq!(state.get("x"), Some(&1));
+        assert_eq!(state.get("refrigerator"), Some(&1));
+        assert_eq!(state.get("y"), None);
     }
 
     #[test]
@@ -200,8 +201,8 @@ mod tests {
         state.insert(String::from("x"), 3);
         state.insert(String::from("y"), 0);
         program.run(&mut state);
-        assert_eq!(state.variable_states.get("x"), Some(&24));
-        assert_eq!(state.variable_states.get("y"), Some(&21));
+        assert_eq!(state.get("x"), Some(&24));
+        assert_eq!(state.get("y"), Some(&21));
     }
 
     #[test]
@@ -233,7 +234,7 @@ mod tests {
         state.insert(String::from("x"), 4);
         state.insert(String::from("y"), 0);
         program.run(&mut state);
-        assert_eq!(state.variable_states.get("x"), Some(&64));
-        assert_eq!(state.variable_states.get("y"), Some(&64));
+        assert_eq!(state.get("x"), Some(&64));
+        assert_eq!(state.get("y"), Some(&64));
     }
 }
